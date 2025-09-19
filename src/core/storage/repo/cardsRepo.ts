@@ -90,3 +90,10 @@ export async function listCards(filter: ListCardsFilter = {}): Promise<Card[]> {
 export async function countCards(): Promise<number> {
   return withStore('cards', 'readonly', async (s) => s.count());
 }
+
+/** KPI: nombre de cartes créées depuis X jours */
+export async function countCardsAddedSince(days: number): Promise<number> {
+  const since = Date.now() - days * 24 * 60 * 60 * 1000;
+  const all = await listCards();
+  return all.filter((c) => Date.parse(c.createdAt) >= since).length;
+}

@@ -6,6 +6,7 @@ import { generateOptions } from '@/core/logic/quiz/generateOptions';
 import { OptionButton } from './components/OptionButton';
 import { ProgressBar } from './components/ProgressBar';
 import { FeedbackToast } from './components/FeedbackToast';
+import { track } from '@/core/analytics/track';
 
 export default function QuizQCM({ reverse = false }: { reverse?: boolean }) {
   const { cards, load } = useCardsStore();
@@ -32,13 +33,19 @@ export default function QuizQCM({ reverse = false }: { reverse?: boolean }) {
   }, [current, session.length]);
 
   function choose(correct: boolean) {
-    setFeedback(correct ? 'correct' : 'wrong');
-    setTimeout(() => {
-      setFeedback(null);
-      if (i + 1 < session.length) setI(i + 1);
-      else navigate('/quiz/result?score=' + scoreNext(correct));
-    }, 400);
-  }
+  setFeedback(correct ? 'correct' : 'wrong');
+  setTimeout(() => {
+    setFeedback(null);
+    const finished = i + 1 >= session.length;
+    const nextScore = scoreNext(correct);
+    if (!finished) {
+      setI(i + 1);
+    } else {
+      track('quiz_finished', { mode: reverse ? 'reverse' : 'qcm', score: nextScore });
+      navigate('/quiz/result?score=' + nextScore);
+    }
+  }, 400);
+}
 
   const [score, setScore] = useState(0);
   function scoreNext(lastCorrect: boolean) {

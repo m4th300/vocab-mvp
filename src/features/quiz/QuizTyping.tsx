@@ -7,6 +7,7 @@ import { Input } from '@/ui/Input';
 import { Button } from '@/ui/Button';
 import { ProgressBar } from './components/ProgressBar';
 import { FeedbackToast } from './components/FeedbackToast';
+import { track } from '@/core/analytics/track';
 
 export default function QuizTyping() {
   const { cards, load } = useCardsStore();
@@ -41,10 +42,16 @@ export default function QuizTyping() {
     setFeedback(state);
     if (ok) setScore(score + 1);
     setTimeout(() => {
-      setFeedback(null);
-      setAnswer('');
-      if (i + 1 < session.length) setI(i + 1);
-      else navigate('/quiz/result?score=' + (ok ? score + 1 : score));
+        setFeedback(null);
+        setAnswer('');
+        const finished = i + 1 >= session.length;
+        const finalScore = ok ? score + 1 : score;
+        if (!finished) {
+            setI(i + 1);
+        } else {
+            track('quiz_finished', { mode: 'typing', hardcore, score: finalScore });
+            navigate('/quiz/result?score=' + finalScore);
+        }
     }, 400);
   }
 
