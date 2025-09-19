@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import { Suspense, useRef } from 'react';
 import { BrowserRouter, Route, Routes, NavLink, useLocation } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './providers/ThemeProvider';
 import { StoreProvider } from './providers/StoreProvider';
@@ -9,15 +9,50 @@ import {
 import { ToastProvider, useToast } from '@/ui/Toast';
 import { Button } from '@/ui/Button';
 import SidebarFolders from '@/features/folders/SidebarFolders';
+import { downloadExport, importData } from '@/core/storage/backup';
 
 function Topbar() {
   const { theme, toggle } = useTheme();
   const toast = useToast();
   const loc = useLocation();
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  async function onExport() {
+    await downloadExport();
+    toast.show({ title: 'Export JSON', description: 'Fichier téléchargé.' });
+  }
+
+  async function onImportFile(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const res = await importData(text);
+      toast.show({
+        title: 'Import terminé',
+        description: `Dossiers: ${res.folders}, Cartes: ${res.cards}`,
+      });
+    } catch (err: any) {
+      toast.show({ title: 'Import échoué', description: String(err?.message ?? err), variant: 'danger' as any });
+    } finally {
+      e.target.value = '';
+    }
+  }
+
   return (
     <div className="h-12 flex items-center justify-between px-4 border-b border-[var(--border)]">
       <div className="font-medium">Vocab Cards — MVP</div>
       <div className="flex items-center gap-2">
+        <input
+          ref={fileRef}
+          type="file"
+          accept="application/json"
+          className="hidden"
+          onChange={onImportFile}
+        />
+        <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>Importer JSON</Button>
+        <Button variant="outline" size="sm" onClick={onExport}>Exporter JSON</Button>
+
         {loc.pathname.startsWith('/quiz') ? (
           <NavLink to="/quiz" className="text-sm underline">Menu Quiz</NavLink>
         ) : (

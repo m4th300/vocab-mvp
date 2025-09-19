@@ -1,56 +1,101 @@
-# Vocab Cards — MVP (Vite + React + TypeScript + Tailwind v4)
+# Vocab Cards — MVP
 
-## À propos
-> Licence : MIT • Stack : Vite + React + TypeScript + Tailwind v4 • Persistance : IndexedDB (idb)
+MVP d’une webapp de **fiches vocabulaire** (recto/verso) avec **quiz**.
+Stack : **Vite + React + TypeScript + Tailwind v4 + Zustand + idb + framer-motion**.
 
-## Objectif
-Construire un MVP propre, extensible et élégant d’une webapp de fiches de vocabulaire (recto/verso) avec quiz :
-- CRUD cartes + dossiers hiérarchiques
-- Quiz (QCM, inversé, saisie + tolérance)
-- UX clavier prioritaire, light/dark, micro-animations
-- Persistance locale (IndexedDB via `idb`), extension future SRS (SM-2), gamification, analytics
+## Installation
 
-## Protocole de livraison (🔒 impératif)
-Livraison **par lots séquentiels de 7–8 items**, point d’arrêt à la fin de chaque lot.  
-Je ne passerai au lot suivant **que** sur validation explicite “Oui”.
-- Chaque lot maintient un état **intégrable et cohérent**.
-- Si un fichier existe déjà, version complète (pas de diff).
-- Jamais de livraison “fichier par fichier”.
-
-## Stack & contraintes
-- Vite, React, TypeScript (strict)
-- Tailwind **v4** (syntaxe v4, tokens CSS natifs, plus de `content[]`)
-- framer-motion, Zustand, `idb`
-- ESLint + Prettier (Lot 1)
-- Architecture **feature-first**
-
-### 🧶 Tailwind v4 (notes importantes)
-- Import CSS natif : `@import "tailwindcss";`
-- Thèmes via variables CSS et data-attributes (`[data-theme="dark"]`)
-- Utilisation des tokens CSS (variables) mappées à Tailwind
-- Les classes et exemples fournis respecteront **strictement** Tailwind v4.
-
-## Prérequis
-- Node.js ≥ 20.x (recommandé 22.x LTS), npm ≥ 10
-- Git
-- Éditeur avec ESLint/Prettier (VS Code recommandé)
-
-## Roadmap (lots)
-- Lot 0 — Préflight (vous êtes ici)
-- Lot 1 — Bootstrap (Vite/TS/Tailwind v4/ESLint/Prettier, providers, arborescence)
-- Lot 2 — Design System (thèmes, tokens, UI primitives : Button, Input, Dialog, Toast)
-- Lot 3 — Données & Persistance (models, db wrapper IndexedDB, repos, seed)
-- Lot 4 — CRUD & Navigation (sidebar dossiers, liste cartes, modales, recherche)
-- Lot 5 — Quiz (launcher, QCM, inversé, saisie + tolérance, adaptativité simple)
-- Lot 6 — Dashboard (KPIs, “Aujourd’hui”, hooks SRS placeholders)
-- Lot 7 — QA & Polish (raccourcis, micro-anim, README final, import/export JSON)
-
-## Démarrage (sera effectif au Lot 1)
 ```bash
 npm i
 npm run dev
+# build produit
+npm run build && npm run preview
+Scripts
+dev : lancement serveur Vite
 
-## Licence
+build : build prod
 
-Ce projet est sous licence **MIT**.  
-© 2025 Mathéo. Voir le fichier `LICENSE` pour le texte complet.
+preview : prévisualisation du build
+
+typecheck : tsc --noEmit
+
+lint : ESLint
+
+format : Prettier
+
+Fonctionnalités MVP
+Dossiers (couleur soft), Cartes (term/definition), recherche.
+
+Quiz : QCM, QCM inversé, Saisie (+ tolérance Damerau–Levenshtein, mode Hardcore).
+
+Adaptativité simple (cartes “faibles” reviennent plus).
+
+Dashboard : KPI (Total, 7j, Sessions aujourd’hui), section “Aujourd’hui”.
+
+Persistance locale : IndexedDB (idb), Import/Export JSON.
+
+Raccourcis :
+
+Global quiz : 1..4 (QCM), Enter (valider), Esc (quitter)
+
+Liste cartes : N (nouvelle), E (éditer 1ʳᵉ), Del (supprimer 1ʳᵉ)
+
+Modales : Esc (fermer)
+
+Architecture (feature-first)
+bash
+Copier le code
+src/
+  app/               # Shell, routes, providers
+  core/
+    models/         # types
+    storage/        # idb + repo + backup
+    logic/quiz/     # generateOptions, tolerance, adaptivity, due
+    analytics/      # track() (no-op)
+    utils/          # id, string, keyboard...
+  features/
+    folders/        # sidebar + modal
+    cards/          # list + item + modal
+    quiz/           # launcher + modes + components
+    dashboard/      # KPI + Aujourd’hui
+  ui/               # design system léger
+Import/Export
+Exporter JSON : Topbar → “Exporter JSON”.
+
+Importer JSON : Topbar → “Importer JSON” (merge idempotent par id).
+
+Roadmap (Étape 2 & 3)
+SRS SM-2 complet (champs dueDate, easiness, interval).
+
+Gamification : XP, niveaux, succès.
+
+Analytics : véritable provider + envoi d’événements.
+
+Calendrier : vue due/heatmap.
+
+Mobile polish + accessibilité approfondie.
+
+yaml
+Copier le code
+
+---
+
+## 5) Checklist d’acceptation
+- [ ] Boutons **Importer JSON** / **Exporter JSON** visibles en topbar, exporte un fichier et importe correctement (merge idempotent).
+- [ ] Après import/export, la **sidebar** et les **KPI** se rafraîchissent (grâce à `db:changed`).
+- [ ] Sur **/cards**, les raccourcis **N / E / Del** fonctionnent (et sont ignorés si le focus est dans un input).
+- [ ] En QCM, les options ont une **micro-animation** douce au survol/clic.
+- [ ] README à jour (setup, scripts, raccourcis, roadmap).
+- [ ] `npm run dev` (et `npm run build`) OK.
+
+---
+
+## 6) Point d’arrêt
+Lot 7 livré ✅  
+Tu veux qu’on enchaîne avec un **Lot 8 (facultatif)** pour quelques finitions (ex. tags optionnels, petite pagination, améliorations d’accessibilité), ou on s’arrête ici pour ce MVP ?
+
+
+
+
+
+Demander à ChatGPT

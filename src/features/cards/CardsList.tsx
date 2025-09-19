@@ -7,6 +7,7 @@ import { Button } from '@/ui/Button';
 import { Input } from '@/ui/Input';
 import { CardFormModal } from './CardFormModal';
 import { CardItem } from './CardItem';
+import { isFromEditable } from '@/core/utils/keyboard';
 
 export default function CardsList() {
   const [params] = useSearchParams();
@@ -22,6 +23,33 @@ export default function CardsList() {
     void load({ folderId: folderId ?? undefined, query: searchQuery });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [folderId, searchQuery]);
+
+  // Raccourcis N / E / Del (sur la 1ʳᵉ carte en liste par simplicité)
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (isFromEditable(e)) return;
+      if (e.key.toLowerCase() === 'n') {
+        e.preventDefault();
+        setEditingId(null);
+        setOpen(true);
+      } else if (e.key.toLowerCase() === 'e') {
+        if (cards[0]) {
+          e.preventDefault();
+          setEditingId(cards[0].id);
+          setOpen(true);
+        }
+      } else if (e.key === 'Delete') {
+        if (cards[0]) {
+          e.preventDefault();
+          if (confirm('Supprimer la première carte de la liste ?')) {
+            void remove(cards[0].id);
+          }
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [cards, remove]);
 
   const folderName = useMemo(() => {
     if (!folderId) return 'Toutes les cartes';
