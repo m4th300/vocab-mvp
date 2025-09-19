@@ -1,5 +1,8 @@
 # Vocab Cards — MVP (Vite + React + TypeScript + Tailwind v4)
 
+## À propos
+> Licence : MIT • Stack : Vite + React + TypeScript + Tailwind v4 • Persistance : IndexedDB (idb)
+
 ## Objectif
 Construire un MVP propre, extensible et élégant d’une webapp de fiches de vocabulaire (recto/verso) avec quiz :
 - CRUD cartes + dossiers hiérarchiques
@@ -46,3 +49,8 @@ Je ne passerai au lot suivant **que** sur validation explicite “Oui”.
 ```bash
 npm i
 npm run dev
+
+## Licence
+
+Ce projet est sous licence **MIT**.  
+© 2025 Mathéo. Voir le fichier `LICENSE` pour le texte complet.
