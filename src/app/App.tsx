@@ -2,9 +2,10 @@ import { Suspense } from 'react';
 import { BrowserRouter, Route, Routes, NavLink } from 'react-router-dom';
 import { ThemeProvider, useTheme } from './providers/ThemeProvider';
 import { StoreProvider } from './providers/StoreProvider';
-import { DashboardPage } from './routes';
+import { DashboardPage, CardsListPage } from './routes';
 import { ToastProvider, useToast } from '@/ui/Toast';
 import { Button } from '@/ui/Button';
+import SidebarFolders from '@/features/folders/SidebarFolders';
 
 function Topbar() {
   const { theme, toggle } = useTheme();
@@ -34,23 +35,7 @@ function Topbar() {
 }
 
 function Sidebar() {
-  return (
-    <aside className="w-56 border-r border-[var(--border)] hidden md:flex md:flex-col">
-      <nav className="p-3">
-        <NavLink
-          to="/"
-          className={({ isActive }) =>
-            `block px-3 py-2 rounded-lg ${
-              isActive ? 'bg-[var(--border)]/40' : 'hover:bg-[var(--border)]/30'
-            }`
-          }
-          end
-        >
-          Dashboard
-        </NavLink>
-      </nav>
-    </aside>
-  );
+  return <SidebarFolders />;
 }
 
 function Shell() {
@@ -63,6 +48,7 @@ function Shell() {
           <Suspense fallback={<div className="p-6">Chargement…</div>}>
             <Routes>
               <Route path="/" element={<DashboardPage />} />
+              <Route path="/cards" element={<CardsListPage />} />
             </Routes>
           </Suspense>
         </main>
