@@ -4,11 +4,13 @@ import { loadDemoSeed } from '@/core/storage/seed';
 import { countCards } from '@/core/storage/repo/cardsRepo';
 import { countFolders } from '@/core/storage/repo/foldersRepo';
 import { useToast } from '@/ui/Toast';
+import { useFoldersStore } from '@/store/useFoldersStore';
 
 export default function DashboardPage() {
   const [cards, setCards] = useState<number>(0);
   const [folders, setFolders] = useState<number>(0);
   const toast = useToast();
+  const foldersStore = useFoldersStore();
 
   async function refreshCounts() {
     const [c, f] = await Promise.all([countCards(), countFolders()]);
@@ -18,16 +20,21 @@ export default function DashboardPage() {
 
   useEffect(() => {
     void refreshCounts();
+
+    // ✅ écoute les changements de DB (création/suppression cartes/dossiers)
+    function onDbChanged() {
+      void refreshCounts();
+    }
+    window.addEventListener('db:changed', onDbChanged as EventListener);
+    return () => window.removeEventListener('db:changed', onDbChanged as EventListener);
   }, []);
 
   async function onSeed() {
     const res = await loadDemoSeed();
-    await refreshCounts();
+    await Promise.all([refreshCounts(), foldersStore.load()]);
     toast.show({
-      title: res.created ? 'Exemples chargés' : 'Déjà initialisé',
-      description: res.created
-        ? '3 dossiers + 12 cartes ajoutés.'
-        : 'Des dossiers/cartes existent déjà.'
+      title: res.created ? 'Exemples chargés' : 'État inchangé',
+      description: res.message
     });
   }
 

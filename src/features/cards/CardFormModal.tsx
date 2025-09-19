@@ -16,7 +16,9 @@ export function CardFormModal({ open, onClose, folderId, card }: Props) {
   const [term, setTerm] = useState('');
   const [definition, setDefinition] = useState('');
 
+  // ✅ Reset à chaque ouverture :
   useEffect(() => {
+    if (!open) return;
     if (card) {
       setTerm(card.term);
       setDefinition(card.definition);
@@ -24,7 +26,7 @@ export function CardFormModal({ open, onClose, folderId, card }: Props) {
       setTerm('');
       setDefinition('');
     }
-  }, [card]);
+  }, [open, card]);
 
   async function onSubmit() {
     if (!term.trim() || !definition.trim()) return;

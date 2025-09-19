@@ -2,12 +2,17 @@ import { useEffect, useState } from 'react';
 import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useFoldersStore } from '@/store/useFoldersStore';
 import { useSettingsStore } from '@/store/useSettingsStore';
+import { useCardsStore } from '@/store/useCardsStore';
 import { Button } from '@/ui/Button';
 import { FolderFormModal } from './FolderFormModal';
+import { useToast } from '@/ui/Toast';
 
 export default function SidebarFolders() {
   const { folders, load, remove } = useFoldersStore();
   const { selectedFolderId, setFolder } = useSettingsStore();
+  const { load: loadCards } = useCardsStore();
+  const toast = useToast();
+
   const [open, setOpen] = useState(false);
   const [editId, setEditId] = useState<string | undefined>(undefined);
 
@@ -29,6 +34,19 @@ export default function SidebarFolders() {
     navigate({ pathname: '/cards', search: p.toString() });
   }
 
+  async function onDeleteFolder(id: string) {
+    if (!confirm('Supprimer ce dossier et toutes ses cartes ?')) return;
+    const deleted = await remove(id);
+    // si on était dessus, on revient à "Toutes les cartes"
+    if (selectedFolderId === id) goFolder(null);
+    // recharge la liste des cartes (au cas où on est sur "Toutes les cartes")
+    await loadCards({});
+    toast.show({
+      title: 'Dossier supprimé',
+      description: deleted > 0 ? `+ ${deleted} carte(s) supprimée(s)` : 'Aucune carte dans ce dossier.'
+    });
+  }
+
   return (
     <aside className="w-56 border-r border-[var(--border)] hidden md:flex md:flex-col">
       <div className="p-3 flex items-center justify-between">
@@ -40,7 +58,9 @@ export default function SidebarFolders() {
         <NavLink
           to="/"
           className={({ isActive }) =>
-            `block px-3 py-2 rounded-lg ${isActive && loc.pathname==='/' ? 'bg-[var(--border)]/40' : 'hover:bg-[var(--border)]/30'}`
+            `block px-3 py-2 rounded-lg ${
+              isActive && loc.pathname==='/' ? 'bg-[var(--border)]/40' : 'hover:bg-[var(--border)]/30'
+            }`
           }
           end
         >
@@ -66,7 +86,7 @@ export default function SidebarFolders() {
               {f.name}
             </button>
             <button className="opacity-60 hover:opacity-100 px-1" title="Renommer" onClick={() => { setEditId(f.id); setOpen(true); }}>✏️</button>
-            <button className="opacity-60 hover:opacity-100 px-1" title="Supprimer" onClick={async () => { if (confirm('Supprimer ce dossier ?')) await remove(f.id); }}>🗑️</button>
+            <button className="opacity-60 hover:opacity-100 px-1" title="Supprimer" onClick={() => onDeleteFolder(f.id)}>🗑️</button>
           </div>
         ))}
       </nav>

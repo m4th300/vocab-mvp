@@ -2,6 +2,7 @@ import type { Card, CardId } from '@/core/models/card';
 import { newId, nowIso } from '@/core/utils/id';
 import { normalizeText } from '@/core/utils/string';
 import { getDB, withStore } from '@/core/storage/db';
+import { dbChanged } from '@/core/storage/events';
 
 export async function createCard(input: {
   term: string;
@@ -20,10 +21,8 @@ export async function createCard(input: {
     updatedAt: now,
     stats: { correctStreak: 0 }
   };
-  await withStore('cards', 'readwrite', async (s) => {
-    await s.put(card);
-    return;
-  });
+  await withStore('cards', 'readwrite', async (s) => { await s.put(card); });
+  dbChanged();
   return card;
 }
 
@@ -34,31 +33,35 @@ export async function updateCard(
   const existing = await getCard(id);
   if (!existing) return null;
   const updated: Card = { ...existing, ...patch, updatedAt: nowIso() };
-  await withStore('cards', 'readwrite', async (s) => {
-    await s.put(updated);
-    return;
-  });
+  await withStore('cards', 'readwrite', async (s) => { await s.put(updated); });
+  dbChanged();
   return updated;
 }
 
 export async function deleteCard(id: CardId): Promise<void> {
-  await withStore('cards', 'readwrite', async (s) => {
-    await s.delete(id);
-    return;
-  });
+  await withStore('cards', 'readwrite', async (s) => { await s.delete(id); });
+  dbChanged();
+}
+
+/** ❗ Supprime toutes les cartes d'un dossier et renvoie le nombre supprimé */
+export async function deleteCardsByFolder(folderId: string): Promise<number> {
+  const db = await getDB();
+  const tx = db.transaction('cards', 'readwrite');
+  const idx = tx.store.index('by_folder');
+  const keys = await idx.getAllKeys(folderId);
+  for (const key of keys) {
+    await tx.store.delete(key as string);
+  }
+  await tx.done;
+  if (keys.length) dbChanged();
+  return keys.length;
 }
 
 export async function getCard(id: CardId): Promise<Card | null> {
-  return withStore('cards', 'readonly', async (s) => {
-    const v = await s.get(id);
-    return (v as Card) ?? null;
-  });
+  return withStore('cards', 'readonly', async (s) => (await s.get(id)) as Card | null);
 }
 
-export type ListCardsFilter = {
-  folderId?: string;
-  query?: string; // texte libre
-};
+export type ListCardsFilter = { folderId?: string; query?: string };
 
 export async function listCards(filter: ListCardsFilter = {}): Promise<Card[]> {
   const db = await getDB();
@@ -72,15 +75,12 @@ export async function listCards(filter: ListCardsFilter = {}): Promise<Card[]> {
   } else {
     cards = (await store.getAll()) as Card[];
   }
-
   await tx.done;
 
   if (filter.query && filter.query.trim()) {
     const q = normalizeText(filter.query);
     cards = cards.filter(
-      (c) =>
-        normalizeText(c.term).includes(q) ||
-        normalizeText(c.definition).includes(q)
+      (c) => normalizeText(c.term).includes(q) || normalizeText(c.definition).includes(q)
     );
   }
 

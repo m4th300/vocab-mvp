@@ -10,7 +10,7 @@ interface Props extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 const base =
-  'inline-flex items-center justify-center gap-2 rounded-2xl border text-sm font-medium transition-transform active:scale-[0.98] focus-visible:outline-2';
+  'inline-flex items-center justify-center gap-2 rounded-2xl border text-sm font-medium transition-transform active:scale-[0.98] focus-visible:outline-2 whitespace-nowrap';
 
 const variants: Record<Variant, string> = {
   default:

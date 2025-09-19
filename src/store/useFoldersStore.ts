@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import type { Folder } from '@/core/models/folder';
-import { listFolders, createFolder, updateFolder, deleteFolder, FOLDER_COLORS } from '@/core/storage/repo/foldersRepo';
+import { listFolders, createFolder, updateFolder, deleteFolderCascade, FOLDER_COLORS } from '@/core/storage/repo/foldersRepo';
 
 type FoldersState = {
   folders: Folder[];
@@ -9,7 +9,8 @@ type FoldersState = {
   create: (input: { name: string; color?: string; parentId?: string }) => Promise<Folder>;
   rename: (id: string, name: string) => Promise<void>;
   recolor: (id: string, color: string) => Promise<void>;
-  remove: (id: string) => Promise<void>;
+  /** supprime le dossier + cartes ; renvoie le nombre de cartes supprimées */
+  remove: (id: string) => Promise<number>;
   colors: string[];
 };
 
@@ -38,7 +39,8 @@ export const useFoldersStore = create<FoldersState>((set, get) => ({
     set({ folders: get().folders.map(f => f.id===id ? u : f) });
   },
   remove: async (id) => {
-    await deleteFolder(id);
+    const deletedCards = await deleteFolderCascade(id);
     set({ folders: get().folders.filter(f => f.id !== id) });
+    return deletedCards;
   }
 }));
