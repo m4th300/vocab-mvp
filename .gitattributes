@@ -1,0 +1,9 @@
+* text=auto eol=lf
+
+# Améliore les diffs pour sources
+*.ts diff
+*.tsx diff
+*.js diff
+*.jsx diff
+*.css diff
+*.md diff=markdown
